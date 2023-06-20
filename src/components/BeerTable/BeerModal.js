@@ -1,85 +1,41 @@
-import React, { useEffect, useState } from 'react';
-import axios from 'axios';
-import BeerModal from './BeerModal';
-import { Table, Form, Spinner } from 'react-bootstrap';
+import React from 'react';
+import { Modal, Button } from 'react-bootstrap';
+import PropTypes from 'prop-types';
 
-const BeerTable = () => {
-  const [beers, setBeers] = useState([]);
-  const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(null);
-  const [showModal, setShowModal] = useState(false);
-  const [selectedBeer, setSelectedBeer] = useState(null);
-  const [filter, setFilter] = useState('');
-
-  useEffect(() => {
-    fetchBeers();
-  }, []);
-
-  const fetchBeers = async () => {
-    try {
-      const response = await axios.get('http://localhost:7112/api/beer/menu');
-      const fetchedBeers = response.data;
-      setBeers(fetchedBeers);
-      setLoading(false);
-    } catch (error) {
-      console.error('Failed to fetch beers:', error);
-      setError('Failed to fetch beers');
-      setLoading(false);
-    }
-  };
-
-  const handleBeerClick = (beer) => {
-    setSelectedBeer(beer);
-    setShowModal(true);
-  };
-
-  const closeModal = () => {
-    setSelectedBeer(null);
-    setShowModal(false);
-  };
-
-  const filterBeers = () => {
-    return beers.filter((beer) => beer.name.toLowerCase().includes(filter.toLowerCase()));
-  };
-
+const BeerModal = ({ beer, showModal, closeModal }) => {
   return (
-    <div>
-      <h1>PUMPKN.IO</h1>
-      <Form.Group controlId="filterInput">
-        <Form.Control type="text" placeholder="Search Beer" value={filter} onChange={(e) => setFilter(e.target.value)} />
-      </Form.Group>
-      {loading ? (
-        <div className="d-flex justify-content-center align-items-center">
-          <Spinner animation="border" role="status">
-            <span className="visually-hidden">Loading...</span>
-          </Spinner>
-        </div>
-      ) : error ? (
-        <div>Error: {error}</div>
-      ) : (
-        <Table striped bordered hover>
-          <thead>
-            <tr>
-              <th>Name</th>
-              <th>Tagline</th>
-              <th>ABV</th>
-            </tr>
-          </thead>
-          <tbody>
-            {filterBeers().map((beer) => (
-              <tr key={beer.id} onClick={() => handleBeerClick(beer)}>
-                <td>{beer.name}</td>
-                <td>{beer.tagline}</td>
-                <td>{beer.abv}</td>
-              </tr>
-            ))}
-          </tbody>
-        </Table>
-      )}
-
-      <BeerModal beer={selectedBeer} showModal={showModal} closeModal={closeModal} />
-    </div>
+    <Modal show={showModal} onHide={closeModal}>
+      <Modal.Header closeButton>
+        <Modal.Title>Beer Details</Modal.Title>
+      </Modal.Header>
+      <Modal.Body>
+        {beer && (
+          <div>
+            <h4>{beer.name}</h4>
+            <p>Tagline: {beer.tagline}</p>
+            <p>ABV: {beer.abv}</p>
+            {/* Add more beer details as needed */}
+          </div>
+        )}
+      </Modal.Body>
+      <Modal.Footer>
+        <Button variant="secondary" onClick={closeModal}>
+          Close
+        </Button>
+      </Modal.Footer>
+    </Modal>
   );
 };
 
-export default BeerTable;
+BeerModal.propTypes = {
+  beer: PropTypes.shape({
+    name: PropTypes.string.isRequired,
+    tagline: PropTypes.string.isRequired,
+    abv: PropTypes.number.isRequired,
+    // Add more prop types for beer object as needed
+  }),
+  showModal: PropTypes.bool.isRequired,
+  closeModal: PropTypes.func.isRequired,
+};
+
+export default BeerModal;

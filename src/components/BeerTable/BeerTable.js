@@ -1,15 +1,15 @@
 import React, { useEffect, useState } from 'react';
 import axios from 'axios';
-import { Table } from 'react-bootstrap';
 import BeerModal from './BeerModal';
+import { Table, Form, Spinner } from 'react-bootstrap';
 
 const BeerTable = () => {
   const [beers, setBeers] = useState([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
-  const [selectedBeer, setSelectedBeer] = useState(null);
   const [showModal, setShowModal] = useState(false);
-  const [searchValue, setSearchValue] = useState('');
+  const [selectedBeer, setSelectedBeer] = useState(null);
+  const [filter, setFilter] = useState('');
 
   useEffect(() => {
     fetchBeers();
@@ -34,61 +34,49 @@ const BeerTable = () => {
   };
 
   const closeModal = () => {
+    setSelectedBeer(null);
     setShowModal(false);
   };
 
-  const handleSearchChange = (event) => {
-    setSearchValue(event.target.value);
+  const filterBeers = () => {
+    return beers.filter((beer) => beer.name.toLowerCase().includes(filter.toLowerCase()));
   };
 
-  const filteredBeers = beers.filter((beer) =>
-    beer.name.toLowerCase().includes(searchValue.toLowerCase())
-  );
-
-  if (loading) {
-    return <div>Loading...</div>;
-  }
-
-  if (error) {
-    return <div>Error: {error}</div>;
-  }
-
   return (
-    <div className="table-container">
-      <Table striped bordered hover>
-        <thead>
-          <tr>
-            <th>Name</th>
-            <th>Tagline</th>
-            <th>ABV</th>
-          </tr>
-        </thead>
-        <tbody>
-          <tr>
-            <td colSpan="3">
-              <input
-                type="text"
-                placeholder="Search by beer name"
-                value={searchValue}
-                onChange={handleSearchChange}
-              />
-            </td>
-          </tr>
-          {filteredBeers.length > 0 ? (
-            filteredBeers.map((beer) => (
+    <div>
+      <h1>PUMPKN.IO</h1>
+      <Form.Group controlId="filterInput">
+        <Form.Control type="text" placeholder="Search Beer" value={filter} onChange={(e) => setFilter(e.target.value)} />
+      </Form.Group>
+      {loading ? (
+        <div className="d-flex justify-content-center align-items-center">
+          <Spinner animation="border" role="status">
+            <span className="visually-hidden">Loading...</span>
+          </Spinner>
+        </div>
+      ) : error ? (
+        <div>Error: {error}</div>
+      ) : (
+        <Table striped bordered hover>
+          <thead>
+            <tr>
+              <th>Name</th>
+              <th>Tagline</th>
+              <th>ABV</th>
+            </tr>
+          </thead>
+          <tbody>
+            {filterBeers().map((beer) => (
               <tr key={beer.id} onClick={() => handleBeerClick(beer)}>
                 <td>{beer.name}</td>
                 <td>{beer.tagline}</td>
                 <td>{beer.abv}</td>
               </tr>
-            ))
-          ) : (
-            <tr>
-              <td colSpan="3">No beers found</td>
-            </tr>
-          )}
-        </tbody>
-      </Table>
+            ))}
+          </tbody>
+        </Table>
+      )}
+
       <BeerModal beer={selectedBeer} showModal={showModal} closeModal={closeModal} />
     </div>
   );
